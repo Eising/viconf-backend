@@ -1,0 +1,5 @@
+#+TITLE: Viconf2
+
+Viconf2 is a rewrite of Viconf, a template-oriented provisioning system.
+
+This is WIP, and not at all intended for any usage yet.
