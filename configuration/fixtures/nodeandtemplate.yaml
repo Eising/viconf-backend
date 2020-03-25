@@ -1,0 +1,44 @@
+-   model: configuration.group
+    pk: test
+    fields:
+        username: test
+        password: test
+        enable_password: null
+-   model: configuration.node
+    pk: test.node
+    fields:
+        ipv4: null
+        ipv6: null
+        driver: none
+        comment: null
+        group: test
+        site: ''
+-   model: configuration.resourcetemplate
+    pk: 1
+    fields:
+        name: test
+        description: A test template
+        platform: null
+        up_contents: '
+
+            We start by saying Hello {{ place }}.
+
+            Today is {{ day }}
+
+            '
+        down_contents: '
+
+            Goodbye, {{ place }}
+
+            Have a nice {{ day }}
+
+            '
+        fields:
+            day: string
+            place: string
+        labels:
+            day: A day of the week
+            place: A place
+        deleted: false
+        created: 2020-03-24 15:04:38.024386+00:00
+        modified: 2020-03-24 15:04:38.029971+00:00
