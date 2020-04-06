@@ -140,10 +140,16 @@ class ServiceSerializer(serializers.ModelSerializer):
     )
     created = serializers.DateTimeField(read_only=True)
     modified = serializers.DateTimeField(read_only=True)
+    resource_service_list = ResourceServiceSerializer(
+        source="resource_services",
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = Service
-        fields = ['id', 'name', 'created', 'modified', 'resource_services']
+        fields = ['id', 'name', 'created', 'modified', 'resource_services',
+                  'resource_service_list']
 
     def create(self, validated_data):
         resource_services = validated_data.pop('resource_services', [])
