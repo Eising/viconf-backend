@@ -80,6 +80,18 @@ class ResourceTemplateSerializer(serializers.Serializer):
                     instance.fields[tag] = "none"
                     instance.labels[tag] = tag.capitalize()
 
+        # Remove old tags no longer in the template
+        remove_tags = []
+        for field in instance.fields.keys():
+            if field not in tags:
+                remove_tags.append(field)
+
+        for tag in remove_tags:
+            instance.fields.pop(tag)
+            instance.labels.pop(tag)
+
+        instance.save()
+
         return instance
 
 
@@ -99,13 +111,18 @@ class ResourceServiceSerializer(serializers.ModelSerializer):
         many=True,
         queryset=ResourceTemplate.objects.all()
     )
+    resource_template_list = ResourceTemplateSerializer(
+        source="resource_templates",
+        many=True,
+        read_only=True
+    )
     created = serializers.DateTimeField(read_only=True)
     modified = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = ResourceService
-        fields = ['resource_templates', 'node', 'defaults', 'created',
-                  'modified']
+        fields = ['id', 'name', 'resource_templates', 'resource_template_list',
+                  'node', 'defaults', 'created', 'modified']
 
     def create(self, validated_data):
         resource_templates = validated_data.pop('resource_templates', [])

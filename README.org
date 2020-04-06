@@ -3,3 +3,41 @@
 Viconf2 is a rewrite of Viconf, a template-oriented provisioning system.
 
 This is WIP, and not at all intended for any usage yet.
+
+* Intended API flow:
+
+** Create template
+POST:
+endpoint: =/api/v1/configuration/templates/=
+#+begin_src javascript
+{
+    "name": "Name",
+    "up_contents": "Template Here"
+    "down_contents": "Template here"
+}
+#+end_src
+
+** Get template fields
+GET: =/api/v1/configuration/templates/<id>/fields/=
+
+** Update template fields
+PUT: =/api/v1/configuration/templates/<id>/fields/=
+
+#+begin_src javascript
+{
+    "resource_fieldset": [
+        {
+            "name": "variable",
+            "validator": "validator",
+            "label": "Some label"
+        },
+        {
+            "name": "variable2",
+            ...
+        }
+    ]
+}
+#+end_src
+
+** Create ResourceService
+POST =/api/v1/configuration/

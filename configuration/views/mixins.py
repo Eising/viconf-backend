@@ -12,3 +12,4 @@ class SafeDestroyModelMixin:
 
     def perform_destroy(self, instance):
         instance.deleted = True
+        instance.save()

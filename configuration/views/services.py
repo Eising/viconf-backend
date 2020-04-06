@@ -117,6 +117,9 @@ class ResourceTemplateFieldsetView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
 
+    def put(self, *args, **kwargs):
+        return self.post(*args, **kwargs)
+
 
 class ResourceServiceList(generics.ListCreateAPIView):
     queryset = ResourceService.objects.all()
@@ -184,7 +187,11 @@ class ServiceConfigView(APIView):
                             validator,
                             service_order.template_fields[node].get(
                                 field,
-                                defaults[field]
+                                next(
+                                    (x for x in defaults
+                                     if x['field'] == field),
+                                    None
+                                )
                             )
                         )
                     except ViconfValidationError:
@@ -217,6 +224,5 @@ class ServiceConfigView(APIView):
         data = list(config.values())
 
         serializer = ConfigurationSerializer(data, many=True)
-
 
         return Response(serializer.data, status=status.HTTP_200_OK)

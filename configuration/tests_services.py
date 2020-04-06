@@ -18,6 +18,7 @@ class ServiceTests(APITestCase):
     def test_create_rs(self):
 
         data = {
+            "name": "Test",
             "node": Node.objects.get().hostname,
             "defaults": {
                 "place": "World",
@@ -43,11 +44,20 @@ class ServiceTests(APITestCase):
 
     def test_create_service(self):
         rs = ResourceService.objects.create(
+            name="Test",
             node=Node.objects.get(),
-            defaults={
-                "place": "World",
-                "day": "Wednesday"
-            }
+            defaults=[
+                {
+                    "field": "place",
+                    "default": "World",
+                    "configurable": False
+                },
+                {
+                    "field": "day",
+                    "default": "Wednesday",
+                    "configurable": True
+                }
+            ]
         )
 
         rs.resource_templates.add(ResourceTemplate.objects.get())
@@ -70,10 +80,18 @@ class ServiceTests(APITestCase):
     def test_service_order(self):
         rs = ResourceService.objects.create(
             node=Node.objects.get(),
-            defaults={
-                "place": "World",
-                "day": "Wednesday"
-            }
+            defaults=[
+                {
+                    "field": "place",
+                    "default": "World",
+                    "configurable": False
+                },
+                {
+                    "field": "day",
+                    "default": "Wednesday",
+                    "configurable": True
+                }
+            ]
         )
 
         rs.resource_templates.add(ResourceTemplate.objects.get())

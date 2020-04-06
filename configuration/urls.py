@@ -25,17 +25,17 @@ urlpatterns = [
         name="groupview",
     ),
     path(
-        "resource_templates/",
+        "templates/",
         services.ResourceTemplateList.as_view(),
         name="resource_template_list",
     ),
     path(
-        "resource_templates/<int:pk>/",
+        "templates/<int:pk>/",
         services.ResourceTemplateView.as_view(),
         name="resource_template_view",
     ),
     path(
-        "resource_templates/<int:pk>/fields/",
+        "templates/<int:pk>/fields/",
         services.ResourceTemplateFieldsetView.as_view(),
         name="resource_template_fieldset",
     ),

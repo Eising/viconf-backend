@@ -23,8 +23,8 @@ class Node(models.Model):
     )
 
     hostname = models.CharField(max_length=255, primary_key=True)
-    ipv4 = models.CharField(max_length=255, null=True, blank=True)
-    ipv6 = models.CharField(max_length=255, null=True, blank=True)
+    ipv4 = models.GenericIPAddressField(protocol="IPv4", null=True, blank=True)
+    ipv6 = models.GenericIPAddressField(protocol="IPv6", null=True, blank=True)
     driver = models.CharField(max_length=255, choices=DRIVERS)
     comment = models.TextField(null=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
@@ -51,6 +51,7 @@ class ResourceTemplate(models.Model):
 class ResourceService(models.Model):
     """Resource Services collectiions of Templates optionally with node
     and defaults"""
+    name = models.CharField(max_length=255)
     resource_templates = models.ManyToManyField(ResourceTemplate)
     node = models.ForeignKey(
         Node,

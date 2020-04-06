@@ -11,15 +11,18 @@ class NodeList(generics.ListCreateAPIView):
     queryset = Node.objects.all()
     serializer_class = NodeSerializer
     permission_classes = [AllowAny]
+    lookup_field = "hostname"
 
 
 class NodeView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Node.objects.all()
     serializer_class = NodeSerializer
     permission_classes = [AllowAny]
+    lookup_field = "hostname"
 
 
 class GroupList(generics.ListCreateAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [AllowAny]
+    lookup_field = "name"
