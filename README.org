@@ -39,5 +39,4 @@ PUT: =/api/v1/configuration/templates/<id>/fields/=
 }
 #+end_src
 
-** Create ResourceService
-POST =/api/v1/configuration/
+To be completed...
