@@ -117,7 +117,130 @@ class ServiceTests(APITestCase):
 
         id = response.data['id']
 
-        config_url = reverse("configuration:service_config_view", kwargs={"pk": id})
+        config_url = reverse(
+            "configuration:service_config_view", kwargs={"pk": id}
+        )
 
         config_response = self.client.get(config_url, format='json')
         self.assertEqual(config_response.data[0]['node'], 'test.node')
+
+    def test_service_schema(self):
+        rs1 = ResourceService.objects.create(
+            node=Node.objects.get(),
+            defaults=[
+                {
+                    "field": "place",
+                    "default": "World",
+                    "configurable": False
+                },
+                {
+                    "field": "day",
+                    "default": "Wednesday",
+                    "configurable": True
+                }
+            ]
+        )
+        rs2 = ResourceService.objects.create(
+            node=None,
+            defaults=[
+                {
+                    "field": "place",
+                    "default": "Venus",
+                    "configurable": False
+                },
+                {
+                    "field": "day",
+                    "default": "Thursday",
+                    "configurable": True
+                }
+            ]
+        )
+        rs1.resource_templates.add(ResourceTemplate.objects.get())
+        rs2.resource_templates.add(ResourceTemplate.objects.get())
+
+        ser = Service.objects.create(name="A service")
+        ser.resource_services.add(rs1)
+        ser.resource_services.add(rs2)
+
+        url = reverse(
+            'configuration:service_schema_view', kwargs={"pk": ser.id}
+        )
+
+        response = self.client.get(url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('__NONODE__', response.data['template_fields'])
+        self.assertIn(
+            Node.objects.get().hostname, response.data['template_fields']
+        )
+
+    def test_subtemplates(self):
+        template1 = """{{! maintemplate }}
+Further content:
+{{! subtemplates }}
+Nothing more here.
+"""
+        template2 = "template2: {{ var1 }}"
+        template3 = "template3: {{ var1 }} {{ var2 }}"
+
+        templates = [template1, template2, template3]
+        for template in templates:
+            data = {
+                "name": "mtemplate",
+                "up_contents": template,
+                "down_contents": "nothing"
+            }
+
+            url = reverse("configuration:resource_template_list")
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        rs = ResourceService.objects.create(
+            name="Test",
+            node=Node.objects.get(),
+            defaults=[
+                {
+                    "field": "var1",
+                    "default": "Hello",
+                    "configurable": False
+                },
+                {
+                    "field": "var2",
+                    "default": "World",
+                    "configurable": False
+                }
+            ]
+        )
+
+        for template in ResourceTemplate.objects.filter(
+                name="mtemplate"
+        ).all():
+            rs.resource_templates.add(template)
+
+        ser = Service.objects.create(name="A service")
+        ser.resource_services.add(rs)
+
+        data = {
+            "reference": "TEST-1",
+            "service": ser.id,
+            "template_fields": {
+                Node.objects.get().hostname: {
+
+                }
+            }
+        }
+
+        url = reverse("configuration:service_order_list")
+        response = self.client.post(url, data, format="json")
+
+        id = response.data['id']
+
+        config_url = reverse("configuration:service_config_view", kwargs={"pk": id})
+
+        config_response = self.client.get(config_url, format='json')
+        expected = """Further content:
+template2: Hello
+template3: Hello World
+
+Nothing more here."""
+        self.assertEqual(config_response.data[0]['service_up'], expected)

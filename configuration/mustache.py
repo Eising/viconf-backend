@@ -10,7 +10,10 @@ class ViconfMustacheTagException(Exception):
 class ViconfMustache(object):
 
     def __init__(self, template):
-        self.template = template
+        if isinstance(template, list):
+            self.template = self.merge_templates(template)
+        else:
+            self.template = template
 
     def parse_keys(self):
         # fragile, relies on pystache internals
@@ -73,3 +76,43 @@ class ViconfMustache(object):
             params[param] = value
 
         return pystache.render(self.template, params)
+
+    def merge_templates(self, texts):
+        """It is possible to set a {{! maintemplate }} comment on top of one template
+        to allow for text merge. With that behavior, any subsequent
+        templates will be merged so that any matching lines from the start
+        will be skipped, and their content inserted at a {{! subtemplates }} tag.
+
+        If both these tags are not present, templates will be added to the end.
+
+        This only works if templates have normal \n line delimiters - can we be sure of that?
+
+        """
+        main_template = None
+        for index, template in enumerate(texts):
+            maintag = re.search(r'\{\{!\s*maintemplate\s*\}\}', template)
+            subtemplatetag = re.search(r'\{\{!\s*subtemplates\s*\}\}', template)
+            if maintag is not None and subtemplatetag is not None:
+                main_template = texts.pop(index)
+                break
+
+        content = ""
+        for template in texts:
+            content += template
+            content += "\n"
+
+        if main_template is not None:
+            content_a = content.split('\n')
+            main_template_a = main_template.split('\n')
+            position = None
+            for index, line in enumerate(main_template_a):
+                subtemplatetag = re.search(r'\{\{!\s*subtemplates\s*\}\}', line)
+                if subtemplatetag is not None:
+                    position = index
+                    break
+
+            main_template_a[position:position] = content_a
+
+            content = "\n".join(main_template_a)
+
+        return content

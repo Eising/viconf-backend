@@ -60,6 +60,11 @@ urlpatterns = [
         name="service_view",
     ),
     path(
+        "services/<int:pk>/schema/",
+        services.ServiceSchemaView.as_view(),
+        name="service_schema_view"
+    ),
+    path(
         "orders/",
         services.ServiceOrderList.as_view(),
         name="service_order_list",

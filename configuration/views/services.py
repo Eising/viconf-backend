@@ -9,7 +9,9 @@ from rest_framework import status
 
 from .mixins import SafeDestroyModelMixin
 
-from configuration.validators import ViconfValidators
+from configuration.helpers import generate_service_schema
+
+from configuration.validators import ViconfValidators, ViconfValidationError
 from configuration.models import (
     ResourceTemplate,
     ResourceService,
@@ -27,10 +29,9 @@ from configuration.serializers.resources import (
 
 from configuration.mustache import (
     ViconfMustache,
-    ViconfMustacheTagException
 )
 
-from configuration.validators import ViconfValidators, ViconfValidationError
+# from configuration.validators import ViconfValidators, ViconfValidationError
 
 
 class RetrieveUpdateSafeDestroyAPIView(
@@ -179,8 +180,10 @@ class ServiceConfigView(APIView):
         for rs in service.resource_services.all():
             defaults = rs.defaults
             node = rs.node.hostname
+            up_templates = []
+            down_templates = []
+            params = {}
             for template in rs.resource_templates.all():
-                params = {}
                 for field, validator in template.fields.items():
                     try:
                         params[field] = vival.test(
@@ -188,7 +191,7 @@ class ServiceConfigView(APIView):
                             service_order.template_fields[node].get(
                                 field,
                                 next(
-                                    (x for x in defaults
+                                    (x['default'] for x in defaults
                                      if x['field'] == field),
                                     None
                                 )
@@ -200,29 +203,43 @@ class ServiceConfigView(APIView):
                             code=400
                         )
 
-                up_template = ViconfMustache(template.up_contents)
-                down_template = ViconfMustache(template.down_contents)
+                up_templates.append(template.up_contents)
+                down_templates.append(template.down_contents)
 
-                if node not in config:
-                    config[node] = {"node": node}
+            if node not in config:
+                config[node] = {"node": node}
 
-                if "service_up" not in config[node]:
-                    config[node]["service_up"] = ""
+            if "service_up" not in config[node]:
+                config[node]["service_up"] = ""
 
-                if "service_down" not in config[node]:
-                    config[node]["service_down"] = ""
+            if "service_down" not in config[node]:
+                config[node]["service_down"] = ""
 
-                config[node]["service_up"] += up_template.compile(
-                    params=params,
-                    service_params=service_params
-                )
-                config[node]["service_down"] += down_template.compile(
-                    params=params,
-                    service_params=service_params
-                )
+            up_template = ViconfMustache(up_templates)
+            down_template = ViconfMustache(down_templates)
+            config[node]["service_up"] = up_template.compile(
+                params=params,
+                service_params=service_params
+            )
+            config[node]["service_down"] = down_template.compile(
+                params=params,
+                service_params=service_params
+
+            )
 
         data = list(config.values())
 
         serializer = ConfigurationSerializer(data, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ServiceSchemaView(APIView):
+    """ Retrieve a schema for a service that matches a ServiceOrder view"""
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk, format=None):
+        service = get_object_or_404(Service, pk=pk)
+        schema = generate_service_schema(service)
+
+        return Response(schema)
