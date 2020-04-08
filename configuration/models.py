@@ -79,7 +79,6 @@ class ServiceOrder(models.Model):
     reference = models.CharField(max_length=255)
     customer = models.CharField(max_length=255, null=True)
     location = models.CharField(max_length=255, null=True)
-    speed = models.IntegerField(null=True)
     service = models.ForeignKey(
         Service,
         on_delete=models.SET_NULL,

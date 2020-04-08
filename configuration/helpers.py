@@ -36,7 +36,6 @@ def generate_service_schema(service):
         "reference": None,
         "customer": None,
         "location": None,
-        "speed": None,
         "service": service.id,
         "template_fields": template_fields
 

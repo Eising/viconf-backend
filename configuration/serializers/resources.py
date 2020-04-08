@@ -164,6 +164,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 class ServiceOrderSerializer(serializers.ModelSerializer):
     created = serializers.DateTimeField(read_only=True)
     modified = serializers.DateTimeField(read_only=True)
+    service_name = serializers.CharField(source="service", read_only=True)
 
     class Meta:
         model = ServiceOrder
@@ -172,11 +173,11 @@ class ServiceOrderSerializer(serializers.ModelSerializer):
             'reference',
             'customer',
             'location',
-            'speed',
             'service',
             'template_fields',
             'created',
             'modified',
+            'service_name',
         ]
 
 

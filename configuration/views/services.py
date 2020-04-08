@@ -169,7 +169,6 @@ class ServiceConfigView(APIView):
             "reference": service_order.reference,
             "customer": service_order.customer,
             "location": service_order.location,
-            "speed": service_order.speed,
             "service": service_order.service.name
         }
 
