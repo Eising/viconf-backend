@@ -2,7 +2,8 @@
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework import status
@@ -56,18 +57,21 @@ class RetrieveUpdateSafeDestroyAPIView(
 class ResourceTemplateList(generics.ListCreateAPIView):
     queryset = ResourceTemplate.objects.filter(deleted=False).all()
     serializer_class = ResourceTemplateSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class ResourceTemplateView(RetrieveUpdateSafeDestroyAPIView):
     queryset = ResourceTemplate.objects.filter(deleted=False).all()
     serializer_class = ResourceTemplateSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class ResourceTemplateFieldsetView(APIView):
     """ retrieve the set of tags or update them """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request, pk, format=None):
         """
@@ -125,43 +129,50 @@ class ResourceTemplateFieldsetView(APIView):
 class ResourceServiceList(generics.ListCreateAPIView):
     queryset = ResourceService.objects.all()
     serializer_class = ResourceServiceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class ResourceServiceView(generics.RetrieveDestroyAPIView):
     # TODO: Maybe implement an Update function here
     queryset = ResourceService.objects.all()
     serializer_class = ResourceServiceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class ServiceList(generics.ListCreateAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class ServiceView(generics.RetrieveDestroyAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class ServiceOrderList(generics.ListCreateAPIView):
     queryset = ServiceOrder.objects.filter(deleted=False).all()
     serializer_class = ServiceOrderSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class ServiceOrderView(generics.RetrieveDestroyAPIView):
     queryset = ServiceOrder.objects.filter(deleted=False).all()
     serializer_class = ServiceOrderSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class ServiceConfigView(APIView):
     """ Fetch config for a service Order """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request, pk, format=None):
         service_order = get_object_or_404(ServiceOrder, pk=pk)
@@ -235,7 +246,8 @@ class ServiceConfigView(APIView):
 
 class ServiceSchemaView(APIView):
     """ Retrieve a schema for a service that matches a ServiceOrder view"""
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request, pk, format=None):
         service = get_object_or_404(Service, pk=pk)
