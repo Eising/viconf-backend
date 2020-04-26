@@ -4,16 +4,16 @@
 DEFAULT_TAGS = [
     'customer',
     'location',
-    'product',
     'reference',
     'node',
-    'node_interface'
+    'node_ipv4',
+    'node_ipv6'
 ]
 
 FORM_TAGS = [
     'customer',
     'location',
-    'product',
     'reference',
-    'node_interface'
+    'node_ipv4',
+    'node_ipv6'
 ]

@@ -14,6 +14,7 @@ from configuration.helpers import generate_service_schema
 
 from configuration.validators import ViconfValidators, ViconfValidationError
 from configuration.models import (
+    Node,
     ResourceTemplate,
     ResourceService,
     Service,
@@ -189,7 +190,18 @@ class ServiceConfigView(APIView):
         config = {}
         for rs in service.resource_services.all():
             defaults = rs.defaults
-            node = rs.node.hostname
+            if rs.node is None:
+                # The rs doesn't enforce node, so we pick the first node
+                nodeobj = Node.objects.get(
+                    hostname=list(
+                        service_order.template_fields.keys()
+                    )[0]
+                )
+                node = nodeobj.hostname
+            else:
+                nodeobj = rs.node
+                node = rs.node.hostname
+
             up_templates = []
             down_templates = []
             params = {}
@@ -224,6 +236,10 @@ class ServiceConfigView(APIView):
 
             if "service_down" not in config[node]:
                 config[node]["service_down"] = ""
+
+            params["node"] = node
+            params["node_ipv4"] = nodeobj.ipv4
+            params["node_ipv6"] = nodeobj.ipv6
 
             up_template = ViconfMustache(up_templates)
             down_template = ViconfMustache(down_templates)
