@@ -89,6 +89,7 @@ class ViconfMustache(object):
 
         """
         main_template = None
+        subexcluded = []
         for index, template in enumerate(texts):
             maintag = re.search(r'\{\{!\s*maintemplate\s*\}\}', template)
             subtemplatetag = re.search(r'\{\{!\s*subtemplates\s*\}\}', template)
@@ -96,12 +97,25 @@ class ViconfMustache(object):
                 main_template = texts.pop(index)
                 break
 
+        for index, template in enumerate(texts):
+            subexcludetag = re.search(r'\{\{!\s*subexclude\s*\}\}', template)
+            if subexcludetag is not None:
+                subexcluded.append(texts.pop(index))
+
         content = ""
+
         for template in texts:
             content += template
             content += "\n"
 
-        if main_template is not None:
+        if main_template is None:
+            # If there is no main template, add the subexcluded
+            # templates back to the content
+            for template in subexcluded:
+                content += template
+                content += "\n"
+
+        else:
             content_a = content.split('\n')
             main_template_a = main_template.split('\n')
             position = None
@@ -113,6 +127,6 @@ class ViconfMustache(object):
 
             main_template_a[position:position] = content_a
 
-            content = "\n".join(main_template_a)
+            content = "\n".join(main_template_a + subexcluded)
 
         return content

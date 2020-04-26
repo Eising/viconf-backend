@@ -2,11 +2,15 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from configuration.models import ResourceTemplate
+from django.contrib.auth.models import User
 
 
 class ResourceTemplateTests(APITestCase):
+    fixtures = ['user']
 
     def test_create_template(self):
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
         up_template = """
 Here is a template.
 It contains a {{ variable }}"""
@@ -31,6 +35,8 @@ Something {{ variable }}"""
         )
 
     def test_get_fieldset(self):
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
         up_template = """
 Here is a template.
 It contains a {{ variable }}"""
@@ -56,6 +62,8 @@ Something {{ variable }}"""
                          'Variable')
 
     def test_update_fieldset(self):
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
         up_template = """
 Here is a template.
 It contains a {{ variable }}"""
@@ -96,6 +104,9 @@ Something {{ variable }}"""
 
     def test_update_template(self):
         """ This tests template update """
+
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
         up_template = "template has {{ var1 }} and {{ var2 }}"
         down_template = "nothing"
 

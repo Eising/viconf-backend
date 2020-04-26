@@ -21,7 +21,7 @@ urlpatterns = [
     ),
     path(
         "groups/<str:name>/",
-        node.GroupList.as_view(),
+        node.GroupView.as_view(),
         name="groupview",
     ),
     path(

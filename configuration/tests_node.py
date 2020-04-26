@@ -2,9 +2,11 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from configuration.models import Node, Group
+from django.contrib.auth.models import User
 
 
 class NodeTests(APITestCase):
+    fixtures = ['user']
 
     def test_create_group(self):
         data = {
@@ -13,6 +15,8 @@ class NodeTests(APITestCase):
             "password": "test",
         }
         url = reverse("configuration:grouplist")
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Group.objects.count(), 1)
@@ -33,6 +37,8 @@ class NodeTests(APITestCase):
             "hostname": "test",
             "group": group.name
         }
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
 
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -51,6 +57,8 @@ class NodeTests(APITestCase):
             driver="none"
         )
         url = reverse("configuration:nodelist")
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)

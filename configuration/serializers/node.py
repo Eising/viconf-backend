@@ -3,6 +3,10 @@ from configuration.models import Node, Group
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        allow_null=True,
+        required=False
+    )
     password = serializers.CharField(
         write_only=True,
         allow_null=True,
