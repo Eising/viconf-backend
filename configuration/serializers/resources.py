@@ -106,6 +106,13 @@ class ResourceTagDefineSerializer(serializers.Serializer):
     resource_fieldset = ResourceFieldsetSerializer(many=True)
 
 
+class RSDefaultsSerializer(serializers.Serializer):
+    field = serializers.CharField()
+    default = serializers.CharField()
+    configurable = serializers.BooleanField()
+    global_field = serializers.BooleanField(default=False)
+
+
 class ResourceServiceSerializer(serializers.ModelSerializer):
     resource_templates = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -118,6 +125,7 @@ class ResourceServiceSerializer(serializers.ModelSerializer):
     )
     created = serializers.DateTimeField(read_only=True)
     modified = serializers.DateTimeField(read_only=True)
+    defaults = RSDefaultsSerializer(many=True)
 
     class Meta:
         model = ResourceService

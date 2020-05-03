@@ -21,10 +21,19 @@ class ServiceTests(APITestCase):
         data = {
             "name": "Test",
             "node": Node.objects.get().hostname,
-            "defaults": {
-                "place": "World",
-                "day": "Wednesday"
-            },
+            "defaults": [
+                {
+                    "field": "place",
+                    "default": "World",
+                    "configurable": True
+                },
+                {
+                    "field": "day",
+                    "default": "Wednesday",
+                    "configurable": True
+                }
+            ],
+
             "resource_templates": [
                 ResourceTemplate.objects.get().id
             ]
@@ -41,9 +50,55 @@ class ServiceTests(APITestCase):
             1
         )
         self.assertEqual(
-            ResourceService.objects.get().defaults['place'],
+            ResourceService.objects.get().defaults[0]['default'],
             'World'
         )
+
+
+    def test_patch_rs(self):
+        self.test_create_rs()
+        data = {
+            "defaults": [
+                {
+                    "field": "place",
+                    "default": "World",
+                    "configurable": False
+                },
+                {
+                    "field": "day",
+                    "default": "Thursday",
+                    "configurable": True
+                },
+            ]
+        }
+        url = reverse("configuration:resource_service_view", kwargs={ "pk": ResourceService.objects.get().id })
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
+        response = self.client.patch(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(
+            ResourceService.objects.get().defaults[0]['configurable']
+        )
+        self.assertEqual(
+            ResourceService.objects.get().defaults[1]['default'], "Thursday"
+        )
+
+    def test_update_template_rs(self):
+        # This test is for updating a template to see if RS gets the
+        # new field automatically
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
+        self.test_create_rs()
+        templ = ResourceTemplate.objects.get()
+        up_contents = templ.up_contents
+        up_contents += "\n {{ foo }}"
+        url = reverse("configuration:resource_template_view", kwargs={"pk": templ.id})
+        response = self.client.patch(url, { "up_contents": up_contents }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rs = ResourceService.objects.get()
+        default_fields = [ field['field'] for field in rs.defaults ]
+        self.assertIn('foo', default_fields)
 
     def test_create_service(self):
         rs = ResourceService.objects.create(

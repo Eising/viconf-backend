@@ -68,6 +68,33 @@ class ResourceTemplateView(RetrieveUpdateSafeDestroyAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    def update_related_rs(self, instance):
+        template = instance
+        template_fields = list(template.fields.keys())
+        related = ResourceService.objects.filter(resource_templates__id=instance.id)
+        for rs in related:
+            defaults = [field for field in rs.defaults if field['field'] in template_fields]
+            default_fields = [field['field'] for field in defaults]
+            new_fields = [field for field in template_fields if field not in default_fields]
+            for field in new_fields:
+                defaults.append(
+                    {
+                        "field": field,
+                        "configurable": True,
+                        "default": None
+                    }
+                )
+
+            rs.defaults = defaults
+            rs.save()
+
+    def perform_update(self, serializer):
+
+        instance = serializer.instance
+        serializer.save()
+        self.update_related_rs(instance)
+
+
 
 class ResourceTemplateFieldsetView(APIView):
     """ retrieve the set of tags or update them """
@@ -134,8 +161,7 @@ class ResourceServiceList(generics.ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
 
 
-class ResourceServiceView(generics.RetrieveDestroyAPIView):
-    # TODO: Maybe implement an Update function here
+class ResourceServiceView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ResourceService.objects.all()
     serializer_class = ResourceServiceSerializer
     permission_classes = [IsAuthenticated]
