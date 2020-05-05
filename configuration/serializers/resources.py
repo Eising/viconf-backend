@@ -108,8 +108,8 @@ class ResourceTagDefineSerializer(serializers.Serializer):
 
 class RSDefaultsSerializer(serializers.Serializer):
     field = serializers.CharField()
-    default = serializers.CharField()
-    configurable = serializers.BooleanField()
+    default = serializers.CharField(allow_null=True, allow_blank=True)
+    configurable = serializers.BooleanField(allow_null=False)
     global_field = serializers.BooleanField(default=False)
 
 
