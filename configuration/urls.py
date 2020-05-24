@@ -1,9 +1,24 @@
 from django.urls import path
-from configuration.views import node, services
+from configuration.views import node, services, user
 
 app_name = 'configuration'
 
 urlpatterns = [
+    path(
+        "users/",
+        user.UserList.as_view(),
+        name="userlist",
+    ),
+    path(
+        "users/current/",
+        user.LoggedinUserDetail.as_view(),
+        name="loggedinuserdetail",
+    ),
+    path(
+        "users/<int:pk>/",
+        user.UserDetail.as_view(),
+        name="userdetail",
+    ),
     path(
         "nodes/",
         node.NodeList.as_view(),
@@ -38,6 +53,11 @@ urlpatterns = [
         "templates/<int:pk>/fields/",
         services.ResourceTemplateFieldsetView.as_view(),
         name="resource_template_fieldset",
+    ),
+    path(
+        "templates/<int:pk>/quick/",
+        services.QuickTemplateView.as_view(),
+        name="quicktemplate_view",
     ),
     path(
         "resource_services/",

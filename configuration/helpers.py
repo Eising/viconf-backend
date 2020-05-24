@@ -1,4 +1,5 @@
 from configuration.models import Service, ResourceService, ResourceTemplate
+from configuration.mustache import ViconfMustache
 import re
 
 
@@ -42,3 +43,25 @@ def generate_service_schema(service):
     }
 
     return schema
+
+
+def generate_quicktemplate_schema(template):
+    """ Generate a schema for a template """
+    template_fields = {}
+
+    for field, validator in template.fields.items():
+        template_fields[field] = {
+            'label': template.labels.get(field, field),
+            'validator': validator
+        }
+
+    # Find additional built-in tags
+    vtemplate = ViconfMustache(template.up_contents)
+    for tag in vtemplate.parse_template_tags()['all_tags']:
+        if tag not in template_fields:
+            template_fields[tag] = {
+                'label': tag.capitalize(),
+                'validator': 'none'
+            }
+
+    return template_fields

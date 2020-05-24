@@ -142,3 +142,32 @@ Something {{ variable }}"""
         self.assertIn("var1", fields)
         self.assertNotIn("var2", fields)
         self.assertIn("var3", fields)
+
+    def test_quicktemplate_schema(self):
+        """ This tests the quicktemplate view"""
+        self.test_update_fieldset()
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
+
+        url = reverse("configuration:quicktemplate_view", kwargs={
+            "pk": ResourceTemplate.objects.get().id
+        })
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("variable", response.data)
+
+    def test_quicktemplate_compile(self):
+        """ This tests filling out quicktemplates """
+        self.test_update_fieldset()
+        user = User.objects.get(username='api')
+        self.client.force_authenticate(user=user)
+
+        data = { "fields": { "variable": "Foo" }}
+        url = reverse("configuration:quicktemplate_view", kwargs={
+            "pk": ResourceTemplate.objects.get().id
+        })
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('template', response.data)
+        self.assertEqual('Here is a template.\nIt contains a Foo', response.data['template'])

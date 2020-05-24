@@ -10,7 +10,10 @@ from rest_framework import status
 
 from .mixins import SafeDestroyModelMixin
 
-from configuration.helpers import generate_service_schema
+from configuration.helpers import (
+    generate_service_schema,
+    generate_quicktemplate_schema
+)
 
 from configuration.validators import ViconfValidators, ViconfValidationError
 from configuration.models import (
@@ -296,3 +299,50 @@ class ServiceSchemaView(APIView):
         schema = generate_service_schema(service)
 
         return Response(schema)
+
+
+class QuickTemplateView(APIView):
+    """ Generate a schema for a single template """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, pk, format=None):
+        template = get_object_or_404(ResourceTemplate, pk=pk)
+        schema = generate_quicktemplate_schema(template)
+
+        return Response(schema)
+
+    def post(self, request, pk, format=None):
+        """Return the compiled template for the UP direction only"""
+        template = get_object_or_404(ResourceTemplate, pk=pk)
+        if 'fields' not in request.data:
+            raise ValidationError(
+                'No fields provided',
+                code=400
+            )
+        fields = request.data['fields']
+
+        params = {}
+        vival = ViconfValidators()
+
+        for field, validator in template.fields.items():
+            try:
+                params[field] = vival.test(
+                    validator,
+                    fields[field]
+                )
+            except ViconfValidationError:
+                raise ValidationError(
+                    f"{field} is not a valid {validator}",
+                    code=400
+                )
+
+        up_template = ViconfMustache(template.up_contents)
+        service_params = {}
+        for field, value in fields.items():
+            if field not in params:
+                service_params[field] = value
+
+        data = {'template': up_template.compile(params, service_params)}
+
+        return Response(data)
